@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Assistance Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 50%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .question, .chat-container {
+            margin-bottom: 20px;
+        }
+        .options button, .send-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .options button:hover, .send-button:hover {
+            background: #0056b3;
+        }
+        .skip {
+            background: #888;
+        }
+        .chat-container {
+            display: none;
+            flex-direction: column;
+            height: 300px;
+        }
+        .chat-box {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .input-box {
+            display: flex;
+        }
+        .input-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="survey-container">
+        <div id="question-container" class="question"></div>
+        <div id="options-container" class="options"></div>
+    </div>
+    
+    <div class="container chat-container" id="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-box">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <script>
+
+      
+
+      (async () => {
+        const showSurvey = await isSurveyTaken();
+        if(!showSurvey) {
+            document.getElementById("survey-container").style.display = "flex";
+            document.getElementById("chat-container").style.display = "none";
+            loadQuestion();
+        }
+        else {
+            document.getElementById("survey-container").style.display = "none";
+            document.getElementById("chat-container").style.display = "flex";
+        }
+
+    })();  
+      
+
+      async function isSurveyTaken() {
+            const response  = await fetch('http://localhost:8080/survey/1234567890', {
+                method: 'GET'
+            });
+            const json = await response.json();
+             console.log("response is " , json);
+             return json.isSurveyTaken;
+        }
+
+        const questions = [
+    { "text": "How are you feeling today?", "options": ["Happy", "Neutral", "Sad", "Anxious", "Depressed"] },
+    { "text": "How often have you felt stressed in the past week?", "options": ["Rarely", "Sometimes", "Often", "Almost always"] },
+    { "text": "How would you describe your energy levels?", "options": ["High energy", "Moderate energy", "Low energy", "Extremely drained"] },
+    { "text": "Have you been feeling overwhelmed by your thoughts recently?", "options": ["No, I feel in control", "Occasionally", "Frequently", "All the time"] },
+    { "text": "Do you find joy in activities you used to enjoy?", "options": ["Yes, absolutely", "Somewhat", "Rarely", "Not at all"] },
+    { "text": "How connected do you feel to others?", "options": ["Very connected", "Somewhat connected", "Occasionally lonely", "Very lonely"] },
+    { "text": "Do you have someone to talk to when you're feeling down?", "options": ["Yes, always", "Sometimes", "Rarely", "No, never"] },
+    { "text": "How well are you sleeping lately?", "options": ["Great, I wake up refreshed", "Decent, but not the best", "Poor, I feel tired often", "Terrible, I struggle to sleep"] },
+    { "text": "How do you usually cope with stress?", "options": ["Talking to someone", "Engaging in hobbies", "Exercising or meditating", "Distracting myself with social media/TV", "I don't know how to cope"] },
+    { "text": "Would you like personalized suggestions to improve your mood?", "options": ["Yes, please!", "Maybe later", "No, I just want to chat"] }
+];
+
+        
+        let currentQuestionIndex = 0;
+        let responses = [];
+        
+        function loadQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                const questionData = questions[currentQuestionIndex];
+                document.getElementById("question-container").innerText = questionData.text;
+                const optionsContainer = document.getElementById("options-container");
+                optionsContainer.innerHTML = "";
+                
+                questionData.options.forEach(option => {
+                    const button = document.createElement("button");
+                    button.innerText = option;
+                    button.onclick = () => recordResponse(option);
+                    optionsContainer.appendChild(button);
+                });
+                
+                const skipButton = document.createElement("button");
+                skipButton.innerText = "Skip";
+                skipButton.classList.add("skip");
+                skipButton.onclick = () => recordResponse("Skipped");
+                optionsContainer.appendChild(skipButton);
+            } else {
+                sendResponsesToServer();
+            }
+        }
+        
+        function recordResponse(answer) {
+            responses.push({ question: questions[currentQuestionIndex].text, response: answer });
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+        
+        function sendResponsesToServer() {
+            fetch('http://localhost:8080/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId : "1234567890" , responses : responses})
+            }).then(response => response.json())
+              .then(data => {
+                  console.log('Success:', data);
+                  document.getElementById("survey-container").style.display = "none";
+                  document.getElementById("chat-container").style.display = "flex";
+              })
+              .catch(error => console.error('Error:', error));
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById("chat-input");
+            const message = input.value.trim();
+            if (message) {
+                const chatBox = document.getElementById("chat-box");
+                const messageElement = document.createElement("div");
+                messageElement.innerText = "You: " + message;
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                input.value = "";
+                
+                fetch('http://localhost:8080/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/html', 'accept': 'application/json' },
+                    body: JSON.stringify({'userId' : 1234567890, 'userMessage' :message})
+                }).then(response => response.json())
+                  .then(data => {
+                      const botResponse = document.createElement("div");
+                      botResponse.innerText = "Bot: " + data.choices[0].message.content;
+                      chatBox.appendChild(botResponse);
+                      chatBox.scrollTop = chatBox.scrollHeight;
+                  })
+                  .catch(error => console.error('Error:', error));
+            }
+        }
+        
+    </script>
+</body>
+</html>
