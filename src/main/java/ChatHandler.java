@@ -59,7 +59,7 @@ class ChatHandler implements HttpHandler {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Bearer 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");
+            connection.setRequestProperty("Authorization", "Bearer xyz");
             connection.setRequestProperty("Content-Type", "application/json");
 
             Gson gson = new Gson();
