@@ -25,10 +25,11 @@ class ChatHandler implements HttpHandler {
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            String gptResponse = connectToGPT(requestBody);
+           // String gptResponse = connectToGPT(requestBody);
+            String geminiResponse = connectToGemini(requestBody);
             System.out.println("Received: " + requestBody);
 
-            String response = gptResponse;
+            String response = geminiResponse;
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, response.getBytes().length);
@@ -48,6 +49,58 @@ class ChatHandler implements HttpHandler {
         exchange.sendResponseHeaders(204, -1); // No Content
     }
 
+
+    private String connectToGemini(String requestBody) {
+        StringBuilder response = new StringBuilder();
+        try {
+            // Define the URL
+            String urlString = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDWzi9FKvh7Fn-TqWvunS3_vGJGBB1_STQ";
+            URL url = new URL(urlString);
+
+            // Create the HTTP connection
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            Gson gson = new Gson();
+            Map<String, String> request =  gson.fromJson(requestBody, new TypeToken<Map<String, String>>(){}.getType());
+
+            GeminiRequest geminiRequest = getGeminiRequest(request.get("userId"), request.get("userMessage"));
+
+            // Create JSON payload
+            String jsonPayload =  gson.toJson(geminiRequest);
+
+            // Write JSON data to the output stream
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+
+            // Get the response code
+            int responseCode = connection.getResponseCode();
+            System.out.println("Response Code: " + responseCode);
+
+            // Read the response
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                // Print the response
+                System.out.println("Response: " + response.toString());
+            }
+
+            // Close the connection
+            connection.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return response.toString();
+    }
+
+
     private String connectToGPT(String requestBody) {
         StringBuilder response = new StringBuilder();
         try {
@@ -59,7 +112,7 @@ class ChatHandler implements HttpHandler {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Bearer xyz");
+            connection.setRequestProperty("Authorization", "Bearer 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");
             connection.setRequestProperty("Content-Type", "application/json");
 
             Gson gson = new Gson();
@@ -109,18 +162,36 @@ class ChatHandler implements HttpHandler {
         }
         String assistantPrompt = "You are a mental health expert. Your job is to have a conversation with the user based on their MENTAL HEALTH SURVEY QUESTIONS. Your tone should be friendly and empathetic. your job improve the mood of the user and ensure to not hurt user feelings or their mental state.\nMENTAL HEALTH SURVEY QUESTIONS:\n";
         content = assistantPrompt + content;
-        Message assistantMessage = new Message(content, Role.SYSTEM);
+        Message assistantMessage = new Message(content, Role.system);
 
         List<Message> messageList = new ArrayList<>();
         messageList.add(assistantMessage);
 
-        messageList.add(new Message(userMessage, Role.USER));
+        messageList.add(new Message(userMessage, Role.user));
 
 
-        MistralRequest mistralRequest = new MistralRequest("mistralai/Mistral-7B-Instruct-v0.3", 1000, false,messageList );
+        MistralRequest mistralRequest = new MistralRequest("mistralai/Mistral-7B-Instruct-v0.3", 500, false,messageList );
 
         return mistralRequest;
 
+    }
+
+
+    private GeminiRequest getGeminiRequest(String userId, String userMessage) {
+
+        List<Response> responseList = SurveyDao.getSurveyResponses(userId);
+        String surveycontents = "";
+        for (Response response: responseList
+        ) {
+            surveycontents = surveycontents + "question:" + response.getQuestion()+"\nanswer:" + response.getResponse() + "\n----\n";
+        }
+        String assistantPrompt = "You are a mental health expert. Your job is to have a conversation with the user based on their MENTAL HEALTH SURVEY QUESTIONS. Your tone should be friendly and empathetic. your job improve the mood of the user and ensure to not hurt user feelings or their mental state.\nMENTAL HEALTH SURVEY QUESTIONS:\n";
+        surveycontents = assistantPrompt + surveycontents;
+
+        GeminiRequest geminiRequest = new GeminiRequest();
+        geminiRequest.addModelTextContent(surveycontents);
+        geminiRequest.addUserTextContent(userMessage);
+        return geminiRequest;
     }
 
 

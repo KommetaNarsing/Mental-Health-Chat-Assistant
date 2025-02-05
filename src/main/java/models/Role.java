@@ -1,7 +1,9 @@
 package models;
 
+import java.util.Locale;
+
 public enum Role {
-        SYSTEM,
-        USER,
-        ASSISTANT
-    }
+        system,
+        user,
+        assistant;
+}

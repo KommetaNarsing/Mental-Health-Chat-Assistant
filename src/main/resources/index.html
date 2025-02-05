@@ -187,7 +187,7 @@
                 }).then(response => response.json())
                   .then(data => {
                       const botResponse = document.createElement("div");
-                      botResponse.innerText = "Bot: " + data.choices[0].message.content;
+                      botResponse.innerText = "Bot: " + data.candidates[0].content.parts[0].text;
                       chatBox.appendChild(botResponse);
                       chatBox.scrollTop = chatBox.scrollHeight;
                   })
