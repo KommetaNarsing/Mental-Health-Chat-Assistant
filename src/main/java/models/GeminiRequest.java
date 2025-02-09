@@ -33,4 +33,11 @@ public class GeminiRequest {
 
         contents.add(content);
     }
+
+    @Override
+    public String toString() {
+        return "GeminiRequest{" +
+                "contents=" + contents +
+                '}';
+    }
 }

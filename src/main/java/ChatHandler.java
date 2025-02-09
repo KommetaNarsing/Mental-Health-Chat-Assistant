@@ -2,6 +2,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
+import dao.ChatDao;
 import dao.SurveyDao;
 import models.*;
 
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 class ChatHandler implements HttpHandler {
@@ -26,10 +28,27 @@ class ChatHandler implements HttpHandler {
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
            // String gptResponse = connectToGPT(requestBody);
-            String geminiResponse = connectToGemini(requestBody);
+
+            List<ChatContent> chatHistory = null;
+            String conversationID =  createConversation(requestBody);
+            System.out.println("Conversation created: " + conversationID);
+            if(conversationID != null) {
+                chatHistory = getChatHistoryForConversation(conversationID);
+            }
+
+            String geminiResponse = connectToGemini(requestBody, chatHistory);
             System.out.println("Received: " + requestBody);
 
             String response = geminiResponse;
+
+            Gson gson = new Gson();
+            Map<String, Object> responseMap =  gson.fromJson(response, new TypeToken<Map<String, Object>>(){}.getType());
+            String botMessage = (String) ((List<Map<String, Map<String, List<Map<String, Object>>>>>)responseMap.get("candidates")).get(0).get("content").get("parts").get(0).get("text");
+
+
+            Map<String, String> request =  gson.fromJson(requestBody, new TypeToken<Map<String, String>>(){}.getType());
+
+            createChatContent(request.get("userId"), botMessage, conversationID, "model");
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, response.getBytes().length);
@@ -42,6 +61,52 @@ class ChatHandler implements HttpHandler {
         }
     }
 
+
+
+
+
+    private List<ChatContent> getChatHistoryForConversation(String conversationId) {
+          return ChatDao.getChatHistory(conversationId);
+    }
+
+   private String createConversation(String requestBody) {
+       Gson gson = new Gson();
+       Map<String, String> request =  gson.fromJson(requestBody, new TypeToken<Map<String, String>>(){}.getType());
+       ChatContent chatContent = ChatDao.getConversation(request.get("userId"));
+       if(chatContent == null) {
+           chatContent = createChatContent(request.get("userId"), request.get("userMessage"), null, "user");
+           return chatContent.getConversationId();
+       }
+       else {
+           String timeStamp = chatContent.getTimeStamp();
+           if(System.currentTimeMillis() -  Long.parseLong(timeStamp) > 300000) {
+               chatContent = createChatContent(request.get("userId"), request.get("userMessage"), null, "user");
+               return chatContent.getConversationId();
+           }
+           else {
+               return createChatContent(request.get("userId"), request.get("userMessage"), chatContent.getConversationId(), "user"). getConversationId();
+           }
+       }
+   }
+
+
+   private ChatContent createChatContent(String userId, String message, String conversationId, String role) {
+       ChatContent chatContent = new ChatContent();
+       chatContent.setContent(message);
+       if(conversationId == null) {
+           chatContent.setConversationId(UUID.randomUUID().toString());
+       }
+       else {
+           chatContent.setConversationId(conversationId);
+       }
+       chatContent.setRole(role);
+       chatContent.setTimeStamp(String.valueOf(System.currentTimeMillis()));
+       chatContent.setUserId(userId);
+       ChatDao.insertChatContent(chatContent);
+       return chatContent;
+   }
+
+
     private void handleCorsPreflight(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -50,7 +115,7 @@ class ChatHandler implements HttpHandler {
     }
 
 
-    private String connectToGemini(String requestBody) {
+    private String connectToGemini(String requestBody, List<ChatContent> chatHistory) {
         StringBuilder response = new StringBuilder();
         try {
             // Define the URL
@@ -66,7 +131,7 @@ class ChatHandler implements HttpHandler {
             Gson gson = new Gson();
             Map<String, String> request =  gson.fromJson(requestBody, new TypeToken<Map<String, String>>(){}.getType());
 
-            GeminiRequest geminiRequest = getGeminiRequest(request.get("userId"), request.get("userMessage"));
+            GeminiRequest geminiRequest = getGeminiRequest(request.get("userId"), request.get("userMessage"), chatHistory);
 
             // Create JSON payload
             String jsonPayload =  gson.toJson(geminiRequest);
@@ -177,7 +242,7 @@ class ChatHandler implements HttpHandler {
     }
 
 
-    private GeminiRequest getGeminiRequest(String userId, String userMessage) {
+    private GeminiRequest getGeminiRequest(String userId, String userMessage, List<ChatContent> chatHistory) {
 
         List<Response> responseList = SurveyDao.getSurveyResponses(userId);
         String surveycontents = "";
@@ -185,12 +250,25 @@ class ChatHandler implements HttpHandler {
         ) {
             surveycontents = surveycontents + "question:" + response.getQuestion()+"\nanswer:" + response.getResponse() + "\n----\n";
         }
-        String assistantPrompt = "You are a mental health expert. Your job is to have a conversation with the user based on their MENTAL HEALTH SURVEY QUESTIONS. Your tone should be friendly and empathetic. your job improve the mood of the user and ensure to not hurt user feelings or their mental state.\nMENTAL HEALTH SURVEY QUESTIONS:\n";
+        String assistantPrompt = "You are a mental health expert. Your job is to have a conversation with the user based on their MENTAL HEALTH SURVEY QUESTIONS. Your tone should be friendly and empathetic. your job improve the mood of the user and ensure to not hurt user feelings or their mental state.Limit your response to 150 words.\nMENTAL HEALTH SURVEY QUESTIONS:\n";
         surveycontents = assistantPrompt + surveycontents;
 
         GeminiRequest geminiRequest = new GeminiRequest();
-        geminiRequest.addModelTextContent(surveycontents);
-        geminiRequest.addUserTextContent(userMessage);
+        geminiRequest.addUserTextContent(surveycontents);
+
+        if(chatHistory != null) {
+            for (ChatContent chat: chatHistory
+                 ) {
+                if(chat.getRole().equalsIgnoreCase( "user")) {
+                    geminiRequest.addUserTextContent(chat.getContent());
+                }
+                else {
+                    geminiRequest.addModelTextContent(chat.getContent());
+                }
+            }
+        }
+
+        System.out.println("Gemini request is " + geminiRequest.toString());
         return geminiRequest;
     }
 

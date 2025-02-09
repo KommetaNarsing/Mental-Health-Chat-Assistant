@@ -29,6 +29,14 @@ public class Content {
     public void addUserRole(){
      role = "user";
     }
+
+    @Override
+    public String toString() {
+        return "Content{" +
+                "parts=" + parts +
+                ", role='" + role + '\'' +
+                '}';
+    }
 }
 
  class  Part {
@@ -44,5 +52,12 @@ public class Content {
 
      public Part(String text) {
          this.text = text;
+     }
+
+     @Override
+     public String toString() {
+         return "Part{" +
+                 "text='" + text + '\'' +
+                 '}';
      }
  }
