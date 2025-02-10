@@ -62,9 +62,6 @@ class ChatHandler implements HttpHandler {
     }
 
 
-
-
-
     private List<ChatContent> getChatHistoryForConversation(String conversationId) {
           return ChatDao.getChatHistory(conversationId);
     }

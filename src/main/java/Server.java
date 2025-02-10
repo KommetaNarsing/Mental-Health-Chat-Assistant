@@ -10,6 +10,8 @@ public class Server {
         server.createContext("/submit", new SurveySubmitHandler());
         server.createContext("/survey", new SurveyHandler());
         server.createContext("/chat", new ChatHandler());
+        server.createContext("/signIn", new SignInHandler());
+
         server.setExecutor(null);
         server.start();
         System.out.println("Server started on port 8080");

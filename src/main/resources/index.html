@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <title>Mental Health Assistance Chat</title>
     <style>
         body {
@@ -66,7 +67,24 @@
     </style>
 </head>
 <body>
-    <div class="container" id="survey-container">
+
+<div id="g_id_onload"
+     data-client_id="1079214379310-c4l3ehkkvp73urfrvd2prblcrh484to0.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse"
+     data-auto_prompt="false">
+</div>
+
+<div class="g_id_signin"
+     data-type="standard"
+     data-size="large"
+     data-theme="outline"
+     data-text="sign_in_with"
+     data-shape="rectangular"
+     data-logo_alignment="left">
+</div>
+
+
+<div class="container" id="survey-container">
         <div id="question-container" class="question"></div>
         <div id="options-container" class="options"></div>
     </div>
@@ -81,7 +99,39 @@
     
     <script>
 
-      
+
+
+    function handleCredentialResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+
+    // Decode JWT (Optional)
+    const userInfo = parseJwt(response.credential);
+    console.log("User Info:", userInfo);
+
+    // Send token to backend for verification
+    sendSignInResponsesToServer(response);
+
+}
+
+// Function to decode JWT token
+function parseJwt(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+}
+
+
+ function sendSignInResponsesToServer(response) {
+            fetch('http://localhost:8080/signIn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
+            }).then(response => response.json())
+              .then(data => {
+                  console.log('Success:', data);
+              })
+              .catch(error => console.error('Error:', error));
+}
 
       (async () => {
         const showSurvey = await isSurveyTaken();
@@ -103,8 +153,8 @@
                 method: 'GET'
             });
             const json = await response.json();
-             console.log("response is " , json);
-             return json.isSurveyTaken;
+            console.log("response is " , json);
+            return json.isSurveyTaken;
         }
 
         const questions = [
