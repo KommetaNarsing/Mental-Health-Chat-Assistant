@@ -7,7 +7,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import dao.UserDao;
 import models.ChatContent;
+import models.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,6 +58,8 @@ public class SignInHandler implements HttpHandler {
                     String email = payload.getEmail();
                     String name = (String) payload.get("name");
                     String pictureUrl = (String) payload.get("picture");
+                    User user = new User(userId, name);
+                    UserDao.insertUser(user);
                     System.out.printf("user id  email name" + userId + " " + name + " " + email);
                     exchange.getResponseHeaders().set("Set-Cookie", "user=" + userId);
                     exchange.sendResponseHeaders(200, -1);

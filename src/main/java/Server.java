@@ -11,6 +11,7 @@ public class Server {
         server.createContext("/survey", new SurveyHandler());
         server.createContext("/chat", new ChatHandler());
         server.createContext("/signIn", new SignInHandler());
+        server.createContext("/isSignedIn", new SessionHandler());
 
         server.setExecutor(null);
         server.start();

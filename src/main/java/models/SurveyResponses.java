@@ -10,6 +10,14 @@ public class SurveyResponses {
 
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setResponses(List<Response> responses) {
+        this.responses = responses;
+    }
+
     public String getUserId() {
         return userId;
     }

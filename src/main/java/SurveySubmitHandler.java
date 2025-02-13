@@ -1,3 +1,4 @@
+import com.sun.net.httpserver.Headers;
 import dao.SurveyDao;
 import models.SurveyResponses;
 import com.google.gson.Gson;
@@ -23,9 +24,23 @@ class SurveySubmitHandler implements HttpHandler {
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             Gson gson = new Gson();
 
+
+            String userId = "";
+
+            Headers requestHeaders = exchange.getRequestHeaders();
+            String cookieString = requestHeaders.getFirst("Cookie");
+            String[] allCookie = cookieString.split("; ");
+            for (String cookie: allCookie
+            ) {
+                if(cookie.startsWith("user=")) {
+                    userId = cookie.substring(5);
+                }
+            }
+
             SurveyResponses surveyResponses =  gson.fromJson(requestBody, new TypeToken<SurveyResponses>(){}.getType());
             System.out.println("Received surveyResponses: " + surveyResponses);
 
+            surveyResponses.setUserId(userId);
             SurveyDao.insertSurveyResponse(surveyResponses);
 
             String response = "{\"sucess\": \"Data received successfully\"}";
