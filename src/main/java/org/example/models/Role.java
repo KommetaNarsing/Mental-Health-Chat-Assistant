@@ -1,6 +1,4 @@
-package models;
-
-import java.util.Locale;
+package org.example.models;
 
 public enum Role {
         system,

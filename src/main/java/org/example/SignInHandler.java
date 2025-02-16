@@ -1,3 +1,5 @@
+package org.example;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -7,17 +9,14 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.UserDao;
-import models.ChatContent;
-import models.User;
+import org.example.dao.UserDao;
+import org.example.models.User;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 
@@ -27,12 +26,6 @@ public class SignInHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-
-        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
-            handleCorsPreflight(exchange);
-            return;
-        }
-
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);

@@ -1,27 +1,20 @@
-package dao;
+package org.example.dao;
 
-import models.Response;
-import models.SurveyResponses;
-import models.User;
+import org.example.DBHandler;
+import org.example.models.User;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserDao {
 
-    public static  void insertUser(User signedInUser) {
-        String url = "jdbc:postgresql://localhost:5432/healthchat";
-        String user = "postgres";
-        String password = "Iamnumber@423";
-
+    public static void insertUser(User signedInUser) {
         // SQL INSERT statement
         String sql = "INSERT INTO healthchat.\"user\"(user_id, user_name) VALUES (?, ?);";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = DBHandler.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, signedInUser.getUserId());         // id
-                stmt.setString(2, signedInUser.getUserName()); // name
+            stmt.setString(1, signedInUser.getUserId());         // id
+            stmt.setString(2, signedInUser.getUserName()); // name
 
             // Execute the insert
             int rowsAffected = stmt.executeUpdate();
@@ -35,14 +28,11 @@ public class UserDao {
 
     public static User getUser(final String userId) {
         User signedInUser = null;
-        String url = "jdbc:postgresql://localhost:5432/healthchat";
-        String user = "postgres";
-        String password = "Iamnumber@423";
 
         // SQL INSERT statement
         String sql = "SELECT user_id, user_name FROM healthchat.\"user\" where user_id=?";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = DBHandler.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, userId);
@@ -59,7 +49,7 @@ public class UserDao {
             e.printStackTrace();
         }
 
-        return  signedInUser ;
+        return signedInUser;
 
     }
 }

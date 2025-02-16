@@ -1,4 +1,4 @@
-package models;
+package org.example.models;
 
 public class Response {
     String question;

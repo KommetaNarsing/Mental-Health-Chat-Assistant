@@ -1,8 +1,7 @@
-package dao;
+package org.example.dao;
 
-import models.ChatContent;
-import models.Response;
-import models.SurveyResponses;
+import org.example.DBHandler;
+import org.example.models.ChatContent;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,28 +9,24 @@ import java.util.List;
 
 public class ChatDao {
 
-    public  static ChatContent getConversation(final String userId) {
-        ChatContent chatContent  = null;
-        String url = "jdbc:postgresql://localhost:5432/healthchat";
-        String user = "postgres";
-        String password = "Iamnumber@423";
+    public static ChatContent getConversation(final String userId) {
+        ChatContent chatContent = null;
 
-        // SQL INSERT statement
         String sql = "SELECT  user_id, conversation_id,timestamp, role, content  FROM healthchat.chat_content where user_id=? order by timestamp desc limit 1;";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = DBHandler.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, userId);
             ResultSet rs = stmt.executeQuery();
             // Fetch row count
             if (rs.next()) {
-                 chatContent = new ChatContent();
-                chatContent.setUserId( rs.getString(1));
-                chatContent.setConversationId( rs.getString(2));
-                chatContent.setTimeStamp( rs.getString(3));
-                chatContent.setRole( rs.getString(4));
-                chatContent.setContent( rs.getString(5));
+                chatContent = new ChatContent();
+                chatContent.setUserId(rs.getString(1));
+                chatContent.setConversationId(rs.getString(2));
+                chatContent.setTimeStamp(rs.getString(3));
+                chatContent.setRole(rs.getString(4));
+                chatContent.setContent(rs.getString(5));
             }
 
         } catch (SQLException e) {
@@ -42,23 +37,19 @@ public class ChatDao {
     }
 
 
-    public static  void insertChatContent(ChatContent chatContent) {
-        String url = "jdbc:postgresql://localhost:5432/healthchat";
-        String user = "postgres";
-        String password = "Iamnumber@423";
-
+    public static void insertChatContent(ChatContent chatContent) {
         // SQL INSERT statement
         String sql = "INSERT INTO healthchat.chat_content(user_id, conversation_id, \"timestamp\", role, content) VALUES (?, ?, ?, ?, ?);";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = DBHandler.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setString(1, chatContent.getUserId());
-                stmt.setString(2, chatContent.getConversationId());
-                stmt.setString(3, chatContent.getTimeStamp());
-                stmt.setString(4, chatContent.getRole());
-                stmt.setString(5, chatContent.getContent());
-                stmt.addBatch();
+            stmt.setString(1, chatContent.getUserId());
+            stmt.setString(2, chatContent.getConversationId());
+            stmt.setString(3, chatContent.getTimeStamp());
+            stmt.setString(4, chatContent.getRole());
+            stmt.setString(5, chatContent.getContent());
+            stmt.addBatch();
 
 
             // Execute the insert
@@ -71,16 +62,12 @@ public class ChatDao {
     }
 
 
-
-    public  static List<ChatContent> getChatHistory(final String conversationId) {
+    public static List<ChatContent> getChatHistory(final String conversationId) {
         List<ChatContent> chatHistory = new ArrayList<>();
-        String url = "jdbc:postgresql://localhost:5432/healthchat";
-        String user = "postgres";
-        String password = "Iamnumber@423";
 
         String sql = "SELECT user_id, conversation_id, \"timestamp\", role, content FROM healthchat.chat_content where conversation_id=? order by timestamp desc limit 10";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password);
+        try (Connection conn = DBHandler.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, conversationId);

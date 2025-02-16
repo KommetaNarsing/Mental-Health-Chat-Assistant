@@ -1,4 +1,4 @@
-package models;
+package org.example.models;
 
 public class Message {
     String content;

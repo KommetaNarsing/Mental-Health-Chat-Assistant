@@ -1,6 +1,8 @@
+package org.example;
+
 import com.sun.net.httpserver.Headers;
-import dao.SurveyDao;
-import models.SurveyResponses;
+import org.example.dao.SurveyDao;
+import org.example.models.SurveyResponses;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpHandler;
@@ -14,11 +16,6 @@ import java.nio.charset.StandardCharsets;
 class SurveySubmitHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
-            handleCorsPreflight(exchange);
-            return;
-        }
-
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);

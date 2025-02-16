@@ -1,9 +1,9 @@
+package org.example;
+
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.SurveyDao;
-import dao.UserDao;
-import models.User;
+import org.example.dao.SurveyDao;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,10 +1,12 @@
+package org.example;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
-import dao.ChatDao;
-import dao.SurveyDao;
-import models.*;
+import org.example.dao.ChatDao;
+import org.example.dao.SurveyDao;
+import org.example.models.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -19,12 +21,7 @@ import java.util.UUID;
 class ChatHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
-            handleCorsPreflight(exchange);
-            return;
-        }
-
-        if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+       if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
            // String gptResponse = connectToGPT(requestBody);

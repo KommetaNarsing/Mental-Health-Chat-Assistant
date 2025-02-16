@@ -1,8 +1,10 @@
+package org.example;
+
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.UserDao;
-import models.User;
+import org.example.dao.UserDao;
+import org.example.models.User;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,12 +12,6 @@ import java.io.OutputStream;
 public class SessionHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-
-        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
-            handleCorsPreflight(exchange);
-            return;
-        }
-
         if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
               Headers requestHeaders = exchange.getRequestHeaders();
               String cookieString = requestHeaders.getFirst("Cookie");

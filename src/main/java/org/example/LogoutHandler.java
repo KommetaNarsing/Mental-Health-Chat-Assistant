@@ -1,26 +1,14 @@
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
+package org.example;
+
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dao.UserDao;
-import models.User;
+import org.example.dao.UserDao;
+import org.example.models.User;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpCookie;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
 
 public class LogoutHandler implements HttpHandler {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -54,12 +42,5 @@ public class LogoutHandler implements HttpHandler {
         } else {
             exchange.sendResponseHeaders(405, -1); // Method Not Allowed
         }
-    }
-
-    private void handleCorsPreflight(HttpExchange exchange) throws IOException {
-        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, OPTIONS");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
-        exchange.sendResponseHeaders(204, -1); // No Content
     }
 }
