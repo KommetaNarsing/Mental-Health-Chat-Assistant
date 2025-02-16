@@ -7,11 +7,12 @@ public class Server {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.createContext("/", new EmptyHandler());
-        server.createContext("/submit", new SurveySubmitHandler());
-        server.createContext("/survey", new SurveyHandler());
-        server.createContext("/chat", new ChatHandler());
-        server.createContext("/signIn", new SignInHandler());
-        server.createContext("/isSignedIn", new SessionHandler());
+        server.createContext("/api/submit", new SurveySubmitHandler());
+        server.createContext("/api/survey", new SurveyHandler());
+        server.createContext("/api/chat", new ChatHandler());
+        server.createContext("/api/signIn", new SignInHandler());
+        server.createContext("/api/isSignedIn", new SessionHandler());
+        server.createContext("/api/logout", new LogoutHandler());
 
         server.setExecutor(null);
         server.start();
