@@ -22,6 +22,4 @@ public class EmptyHandler  implements HttpHandler {
             os.close();
         }
     }
-
-
 }
