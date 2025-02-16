@@ -1,16 +1,19 @@
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 
 public class EmptyHandler  implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        try(InputStream inputStream = this.getClass().getResourceAsStream("index.html")){
+        File file = new File("src/main/frontend/dist/index.html");
+        if(!file.exists()) {
+            exchange.sendResponseHeaders(404, -1);
+            return;
+        }
+        try(InputStream inputStream = new FileInputStream(file)){
             byte[] response = inputStream.readAllBytes();
             exchange.getResponseHeaders().set("Content-type", "text/html");
 

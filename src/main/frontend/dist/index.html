@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
+    <title>Mental Health Assistance Chat</title>
+    <style>body {
+  background-color: #f4f4f4;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  display: flex;
+}
+
+.container {
+  text-align: center;
+  background: #fff;
+  border-radius: 8px;
+  width: 800px;
+  padding: 20px;
+  box-shadow: 0 0 10px #0000001a;
+}
+
+.question, .chat-container {
+  margin-bottom: 20px;
+}
+
+.options button, .send-button {
+  color: #fff;
+  cursor: pointer;
+  background: #007bff;
+  border: none;
+  border-radius: 5px;
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  display: block;
+}
+
+.options button:hover, .send-button:hover {
+  background: #0056b3;
+}
+
+.skip {
+  background: #888;
+}
+
+.chat-container {
+  flex-direction: column;
+  height: 100%;
+  display: none;
+}
+
+.chat-box {
+  text-align: left;
+  border: 1px solid #ccc;
+  height: 80%;
+  margin-bottom: 10px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.input-box {
+  display: flex;
+}
+
+.input-box input {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  flex: 1;
+  padding: 10px;
+}
+
+.menu-bar {
+  color: #fff;
+  background: #007bff;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 20px;
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: 0 2px 5px #0000001a;
+}
+
+.logout-button {
+  color: #fff;
+  cursor: pointer;
+  background: #ff4d4d;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 16px;
+}
+
+.logout-button:hover {
+  background: #c00;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+    <div class="menu-bar">
+        <span class="logo">Mental Health Chat</span>
+        <button class="logout-button" onclick="logoutUser()">Logout</button>
+    </div>
+
+    <div id="sign_in_div">
+        <div id="g_id_onload" data-client_id="1079214379310-c4l3ehkkvp73urfrvd2prblcrh484to0.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left">
+        </div>
+    </div>
+
+    <div class="container" id="survey-container">
+        <div id="question-container" class="question"></div>
+        <div id="options-container" class="options"></div>
+    </div>
+
+    <div class="container chat-container" id="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-box">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>(async ()=>{
+    const isSignedIn = await isAlreadySignedIn();
+    if (!isSignedIn) {
+        console.log("not  signed in");
+        document.getElementById("sign_in_div").style.display = "flex";
+        document.getElementById("survey-container").style.display = "none";
+        document.getElementById("chat-container").style.display = "none";
+        document.querySelector(".logout-button").style.display = "none";
+        loadQuestion();
+    } else {
+        console.log("already signed in");
+        document.getElementById("sign_in_div").style.display = "none";
+        const showSurvey = await isSurveyTaken();
+        if (!showSurvey) {
+            console.log("survey is not taken");
+            document.getElementById("survey-container").style.display = "flex";
+            document.getElementById("chat-container").style.display = "none";
+            loadQuestion();
+        } else {
+            console.log("Survey is taken");
+            document.getElementById("survey-container").style.display = "none";
+            document.getElementById("chat-container").style.display = "flex";
+        }
+    }
+})();
+async function isAlreadySignedIn() {
+    const response = await fetch('/api/isSignedIn', {
+        method: 'GET'
+    });
+    const json = await response.json();
+    console.log("response is ", json);
+    return json.isSignedIn;
+}
+function logoutUser() {
+    fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+    }).then((data)=>{
+        console.log('Logout successful:', data);
+        // Reload page to reflect logout state
+        window.location.href = "/";
+        window.location.reload();
+    }).catch((error)=>console.error('Logout failed:', error));
+}
+function handleCredentialResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+    // Decode JWT (Optional)
+    const userInfo = parseJwt(response.credential);
+    console.log("User Info:", userInfo);
+    // Send token to backend for verification
+    sendSignInResponsesToServer(response);
+}
+// Function to decode JWT token
+function parseJwt(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+}
+function sendSignInResponsesToServer(response) {
+    fetch('/api/signIn', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            token: response.credential
+        })
+    }).then((data)=>{
+        console.log('Success:', data);
+        window.location.reload();
+    }).catch((error)=>console.error('Error:', error));
+}
+async function isSurveyTaken() {
+    const response = await fetch('/api/survey', {
+        method: 'GET'
+    });
+    const json = await response.json();
+    console.log("response is ", json);
+    return json.isSurveyTaken;
+}
+const questions = [
+    {
+        "text": "How are you feeling today?",
+        "options": [
+            "Happy",
+            "Neutral",
+            "Sad",
+            "Anxious",
+            "Depressed"
+        ]
+    },
+    {
+        "text": "How often have you felt stressed in the past week?",
+        "options": [
+            "Rarely",
+            "Sometimes",
+            "Often",
+            "Almost always"
+        ]
+    },
+    {
+        "text": "How would you describe your energy levels?",
+        "options": [
+            "High energy",
+            "Moderate energy",
+            "Low energy",
+            "Extremely drained"
+        ]
+    },
+    {
+        "text": "Have you been feeling overwhelmed by your thoughts recently?",
+        "options": [
+            "No, I feel in control",
+            "Occasionally",
+            "Frequently",
+            "All the time"
+        ]
+    },
+    {
+        "text": "Do you find joy in activities you used to enjoy?",
+        "options": [
+            "Yes, absolutely",
+            "Somewhat",
+            "Rarely",
+            "Not at all"
+        ]
+    },
+    {
+        "text": "How connected do you feel to others?",
+        "options": [
+            "Very connected",
+            "Somewhat connected",
+            "Occasionally lonely",
+            "Very lonely"
+        ]
+    },
+    {
+        "text": "Do you have someone to talk to when you're feeling down?",
+        "options": [
+            "Yes, always",
+            "Sometimes",
+            "Rarely",
+            "No, never"
+        ]
+    },
+    {
+        "text": "How well are you sleeping lately?",
+        "options": [
+            "Great, I wake up refreshed",
+            "Decent, but not the best",
+            "Poor, I feel tired often",
+            "Terrible, I struggle to sleep"
+        ]
+    },
+    {
+        "text": "How do you usually cope with stress?",
+        "options": [
+            "Talking to someone",
+            "Engaging in hobbies",
+            "Exercising or meditating",
+            "Distracting myself with social media/TV",
+            "I don't know how to cope"
+        ]
+    },
+    {
+        "text": "Would you like personalized suggestions to improve your mood?",
+        "options": [
+            "Yes, please!",
+            "Maybe later",
+            "No, I just want to chat"
+        ]
+    }
+];
+let currentQuestionIndex = 0;
+let responses = [];
+function loadQuestion() {
+    if (currentQuestionIndex < questions.length) {
+        const questionData = questions[currentQuestionIndex];
+        document.getElementById("question-container").innerText = questionData.text;
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+        questionData.options.forEach((option)=>{
+            const button = document.createElement("button");
+            button.innerText = option;
+            button.onclick = ()=>recordResponse(option);
+            optionsContainer.appendChild(button);
+        });
+        const skipButton = document.createElement("button");
+        skipButton.innerText = "Skip";
+        skipButton.classList.add("skip");
+        skipButton.onclick = ()=>recordResponse("Skipped");
+        optionsContainer.appendChild(skipButton);
+    } else sendResponsesToServer();
+}
+function recordResponse(answer) {
+    responses.push({
+        question: questions[currentQuestionIndex].text,
+        response: answer
+    });
+    currentQuestionIndex++;
+    loadQuestion();
+}
+function sendResponsesToServer() {
+    fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            responses: responses
+        })
+    }).then((response)=>response.json()).then((data)=>{
+        console.log('Success:', data);
+        document.getElementById("survey-container").style.display = "none";
+        document.getElementById("chat-container").style.display = "flex";
+    }).catch((error)=>console.error('Error:', error));
+}
+function sendMessage() {
+    const input = document.getElementById("chat-input");
+    const message = input.value.trim();
+    if (message) {
+        const chatBox = document.getElementById("chat-box");
+        const messageElement = document.createElement("div");
+        messageElement.innerText = "You: " + message;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        input.value = "";
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/html',
+                'accept': 'application/json'
+            },
+            body: JSON.stringify({
+                'userId': 1234567890,
+                'userMessage': message
+            })
+        }).then((response)=>response.json()).then((data)=>{
+            const botResponse = document.createElement("div");
+            botResponse.innerText = "Bot: " + data.candidates[0].content.parts[0].text;
+            chatBox.appendChild(botResponse);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }).catch((error)=>console.error('Error:', error));
+    }
+}
+
+</script>
+<script src="/frontend.3464ddca.js"></script></body>
+
+</html>
