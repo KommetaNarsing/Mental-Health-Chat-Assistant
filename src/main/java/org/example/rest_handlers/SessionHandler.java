@@ -16,8 +16,6 @@ public class SessionHandler implements HttpHandler {
         if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
               Headers requestHeaders = exchange.getRequestHeaders();
               String cookieString = requestHeaders.getFirst("Cookie");
-            CookieStore c;
-            c.
               String[] allCookie = cookieString.split("; ");
               boolean isSignedIn = false;
               for (String cookie: allCookie
