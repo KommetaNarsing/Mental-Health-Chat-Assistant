@@ -39,8 +39,7 @@ public class AppConfig {
         }
     }
 
-    private AppConfig() {
-    }
+    private AppConfig() {}
 
     public static int port() {
         return AppConfig.port;

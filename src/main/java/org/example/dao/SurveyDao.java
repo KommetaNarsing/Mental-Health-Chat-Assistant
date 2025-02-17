@@ -1,6 +1,6 @@
 package org.example.dao;
 
-import org.example.DBHandler;
+import org.example.DBManager;
 import org.example.models.Response;
 import org.example.models.SurveyResponses;
 
@@ -14,7 +14,7 @@ public class SurveyDao {
         // SQL INSERT statement
         String sql = "INSERT INTO \"healthchat\".survey_responses(question, user_id, answer) VALUES (?, ?, ?);";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for(Response r : surveyResponses.getResponses()) {
@@ -37,7 +37,7 @@ public class SurveyDao {
         // SQL INSERT statement
         String sql = "SELECT COUNT(*) FROM healthchat.survey_responses where user_id=?";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ) {
             stmt.setString(1, userId);
@@ -61,7 +61,7 @@ public class SurveyDao {
         // SQL INSERT statement
         String sql = "SELECT question, user_id, answer FROM healthchat.survey_responses where user_id=?";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, userId);

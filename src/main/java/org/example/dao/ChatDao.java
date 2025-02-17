@@ -1,6 +1,6 @@
 package org.example.dao;
 
-import org.example.DBHandler;
+import org.example.DBManager;
 import org.example.models.ChatContent;
 
 import java.sql.*;
@@ -14,7 +14,7 @@ public class ChatDao {
 
         String sql = "SELECT  user_id, conversation_id,timestamp, role, content  FROM healthchat.chat_content where user_id=? order by timestamp desc limit 1;";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, userId);
@@ -41,7 +41,7 @@ public class ChatDao {
         // SQL INSERT statement
         String sql = "INSERT INTO healthchat.chat_content(user_id, conversation_id, \"timestamp\", role, content) VALUES (?, ?, ?, ?, ?);";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, chatContent.getUserId());
@@ -67,7 +67,7 @@ public class ChatDao {
 
         String sql = "SELECT user_id, conversation_id, \"timestamp\", role, content FROM healthchat.chat_content where conversation_id=? order by timestamp desc limit 10";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, conversationId);

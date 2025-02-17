@@ -1,6 +1,6 @@
 package org.example.dao;
 
-import org.example.DBHandler;
+import org.example.DBManager;
 import org.example.models.User;
 
 import java.sql.*;
@@ -11,7 +11,7 @@ public class UserDao {
         // SQL INSERT statement
         String sql = "INSERT INTO healthchat.\"user\"(user_id, user_name) VALUES (?, ?);";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, signedInUser.getUserId());         // id
             stmt.setString(2, signedInUser.getUserName()); // name
@@ -32,7 +32,7 @@ public class UserDao {
         // SQL INSERT statement
         String sql = "SELECT user_id, user_name FROM healthchat.\"user\" where user_id=?";
 
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
         ) {
             stmt.setString(1, userId);

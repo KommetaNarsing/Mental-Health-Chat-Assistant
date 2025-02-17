@@ -1,6 +1,7 @@
 package org.example;
 
 import com.sun.net.httpserver.HttpServer;
+import org.example.rest_handlers.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class Application {
     }
 
     private static void createDatabase() {
-        try (Connection conn = DBHandler.getPortConnection();
+        try (Connection conn = DBManager.getPortConnection();
              Statement stmt = conn.createStatement()) {
             if (AppConfig.dbProtocol().equals("mysql")) {
                 String createDatabase = "CREATE DATABASE IF NOT EXISTS " + AppConfig.dbName();
@@ -86,7 +87,7 @@ public class Application {
 
     private static void createTables() {
         String sql = loadSqlSchemaFile();
-        try (Connection conn = DBHandler.getConnection();
+        try (Connection conn = DBManager.getConnection();
              Statement stmt = conn.createStatement()) {
             // Split SQL statements based on semicolon
             String[] queries = sql.split(";");
@@ -103,7 +104,7 @@ public class Application {
 
 
     private static String loadSqlSchemaFile() {
-        try (InputStream is = Application.class.getResourceAsStream("table_schemas.sql")) {
+        try (InputStream is = Application.class.getResourceAsStream("/table_schemas.sql")) {
             if (is == null) {
                 throw new RuntimeException("schema file not found");
             }
