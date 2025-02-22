@@ -237,11 +237,17 @@ public class ChatHandler implements HttpHandler {
         ) {
             surveycontents = surveycontents + "question:" + response.getQuestion() + "\nanswer:" + response.getResponse() + "\n----\n";
         }
-        String assistantPrompt = "You are a mental health expert. Your job is to have a conversation with the user based on their MENTAL HEALTH SURVEY QUESTIONS. Your tone should be friendly and empathetic. your job improve the mood of the user and ensure to not hurt user feelings or their mental state.Limit your response to 150 words.\nMENTAL HEALTH SURVEY QUESTIONS:\n";
-        surveycontents = assistantPrompt + surveycontents;
 
+        String assistantPrompt = "";
+        try (InputStream is = this.getClass().getResourceAsStream("Promt.txt") ){
+             assistantPrompt = new String(is.readAllBytes());
+        }
+        catch ( IOException exception){
+
+        }
+        assistantPrompt = assistantPrompt.replace("{{survey}}" , surveycontents );
         GeminiRequest geminiRequest = new GeminiRequest();
-        geminiRequest.addUserTextContent(surveycontents);
+        geminiRequest.addUserTextContent(assistantPrompt);
 
         if (chatHistory != null) {
             for (ChatContent chat : chatHistory
