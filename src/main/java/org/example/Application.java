@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class Application {
@@ -24,15 +26,16 @@ public class Application {
     private static void initServer() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(AppConfig.port()), 0);
-            server.createContext("/", new IndexHandler());
-            server.createContext("/api/submit", new SurveySubmitHandler());
-            server.createContext("/api/survey", new SurveyHandler());
-            server.createContext("/api/chat", new ChatHandler());
-            server.createContext("/api/signIn", new SignInHandler());
-            server.createContext("/api/isSignedIn", new SessionHandler());
-            server.createContext("/api/logout", new LogoutHandler());
 
-            server.setExecutor(null);
+            for (int i = 0; i < 10 ; i++) {
+                Thread thread = new Thread(new Worker());
+                thread.start();
+            }
+
+            server.createContext("/", new DefaultHandler());
+
+            //server.setExecutor(Executors.newFixedThreadPool(4));
+
             server.start();
             System.out.println("org.example.Server started on port 8080");
         } catch (IOException e) {
@@ -94,7 +97,8 @@ public class Application {
             for (String query : queries) {
                 query = query.trim();
                 if (!query.isEmpty()) {
-                    stmt.execute(query);
+                    boolean result = stmt.execute(query);
+                    System.out.println("query is " + query + " and the result is " + result);
                 }
             }
         } catch (Exception e) {

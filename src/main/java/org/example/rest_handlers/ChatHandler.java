@@ -239,7 +239,7 @@ public class ChatHandler implements HttpHandler {
         }
 
         String assistantPrompt = "";
-        try (InputStream is = this.getClass().getResourceAsStream("Promt.txt") ){
+        try (InputStream is = this.getClass().getResourceAsStream("/Promt.txt") ){
              assistantPrompt = new String(is.readAllBytes());
         }
         catch ( IOException exception){

@@ -10,6 +10,8 @@ public class IndexHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+        System.out.println("thread name" + Thread.currentThread().getName() + " id is " + Thread.currentThread().getId());
+
         File file = new File("src/main/frontend/dist/index.html");
         if(!file.exists()) {
             exchange.sendResponseHeaders(404, -1);

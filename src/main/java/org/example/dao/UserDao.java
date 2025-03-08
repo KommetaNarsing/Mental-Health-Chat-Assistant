@@ -9,7 +9,7 @@ public class UserDao {
 
     public static void insertUser(User signedInUser) {
         // SQL INSERT statement
-        String sql = "INSERT INTO healthchat.\"user\"(user_id, user_name) VALUES (?, ?);";
+        String sql = "INSERT INTO healthchat.\"chat_user\"(user_id, user_name) VALUES (?, ?);";
 
         try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -30,7 +30,7 @@ public class UserDao {
         User signedInUser = null;
 
         // SQL INSERT statement
-        String sql = "SELECT user_id, user_name FROM healthchat.\"user\" where user_id=?";
+        String sql = "SELECT user_id, user_name FROM healthchat.\"chat_user\" where user_id=?";
 
         try (Connection conn = DBManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
