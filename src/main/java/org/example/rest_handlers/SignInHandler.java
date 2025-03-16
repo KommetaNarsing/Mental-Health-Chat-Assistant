@@ -51,7 +51,7 @@ public class SignInHandler implements HttpHandler {
                     String email = payload.getEmail();
                     String name = (String) payload.get("name");
                     String pictureUrl = (String) payload.get("picture");
-                    User user = new User(userId, name);
+                    User user = new User(userId, name, "", "");
                     UserDao.insertUser(user);
                     System.out.printf("user id  email name" + userId + " " + name + " " + email);
                     exchange.getResponseHeaders().set("Set-Cookie", "user=" + userId);

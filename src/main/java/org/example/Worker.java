@@ -18,6 +18,7 @@ public class Worker implements Runnable{
         handlerMap.put("/api/signIn", new SignInHandler());
         handlerMap.put("/api/isSignedIn", new SessionHandler());
         handlerMap.put("/api/logout", new LogoutHandler());
+        handlerMap.put("/api/signUp", new SignUpHandler());
     }
 
     @Override

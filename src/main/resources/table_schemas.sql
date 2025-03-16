@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS healthchat.chat_user
 (
     user_id   VARCHAR(255) PRIMARY KEY,
-    user_name VARCHAR(255) NOT NULL
+    user_name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    salt VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS healthchat.survey_responses
